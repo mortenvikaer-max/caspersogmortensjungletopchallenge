@@ -1,713 +1,242 @@
 <!doctype html>
 <html lang="da">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LoL Champion Tracker</title>
-  <style>
-    :root{{
-      --bg:#0b0f14;
-      --text:#e8eef6;
-      --muted:#a7b4c4;
-      --border:rgba(255,255,255,.10);
-      --shadow:0 12px 40px rgba(0,0,0,.45);
-      --ok:#3ddc97;
-      --radius:16px;
-      --cardRadius:18px;
-      --chip: rgba(255,255,255,.04);
-      --chipHover: rgba(255,255,255,.07);
-      --gold2: #b8860b;
-    }}
-    *{{box-sizing:border-box}}
-    body{{
-      margin:0;
-      font-family: "Comic Sans MS","Comic Sans",cursive,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      background: radial-gradient(1200px 800px at 20% 0%, rgba(106,169,255,.16), transparent 60%),
-                  radial-gradient(1000px 700px at 90% 20%, rgba(61,220,151,.12), transparent 55%),
-                  var(--bg);
-      color:var(--text);
-    }}
-    header{{
-      padding:18px 18px 10px 18px;
-      max-width:1320px;
-      margin:0 auto;
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:14px;
-      flex-wrap:wrap;
-    }}
-    h1{{margin:0;font-size:22px;letter-spacing:.2px}}
-    main{{
-      max-width:1320px;
-      margin:0 auto 40px auto;
-      padding:0 18px;
-      display:grid;
-      gap:12px;
-    }}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoL Champion Tracker</title>
 
-    /* Filters */
-    .toolbar{{
-      background: rgba(17,24,36,.75);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      padding: 10px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }}
-    .filters{{display:flex;gap:10px;flex-wrap:wrap;align-items:center}}
-    .group{{display:flex;gap:8px;align-items:center;flex-wrap:wrap}}
-    .label{{color:var(--muted);font-size:12px}}
-    .chip{{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:7px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: var(--chip);
-      color: var(--muted);
-      cursor:pointer;
-      user-select:none;
-      font-size:12px;
-      transition: transform .08s ease, background .2s ease, color .2s ease, border-color .2s ease;
-    }}
-    .chip:hover{{background:var(--chipHover)}}
-    .chip:active{{transform:scale(.98)}}
-    .chip.active{{
-      color:var(--text);
-      border-color: rgba(106,169,255,.35);
-      background: rgba(106,169,255,.14);
-    }}
-    .status{{color:var(--muted);font-size:12px}}
+<style>
+body{
+  margin:0;
+  background:#0b0f14;
+  color:white;
+  font-family:"Comic Sans MS", cursive;
+  overflow-x:hidden;
+}
 
-    /* Grid */
-    .grid{{
-      display:grid;
-      grid-template-columns:repeat(7, minmax(0, 1fr));
-      gap:12px;
-    }}
-    @media (max-width:1200px){{ .grid{{grid-template-columns:repeat(6,1fr);}} }}
-    @media (max-width:1020px){{ .grid{{grid-template-columns:repeat(5,1fr);}} }}
-    @media (max-width:860px){{ .grid{{grid-template-columns:repeat(4,1fr);}} }}
-    @media (max-width:640px){{ .grid{{grid-template-columns:repeat(3,1fr);}} }}
-    @media (max-width:460px){{ .grid{{grid-template-columns:repeat(2,1fr);}} }}
+/* REGN MED PLUSH BILLEDE */
+.rain {
+  position:fixed;
+  top:0;
+  width:160px;
+  height:100vh;
+  pointer-events:none;
+  overflow:hidden;
+  z-index:1;
+}
 
-    .card{{
-      position:relative;
-      border:1px solid var(--border);
-      border-radius:var(--cardRadius);
-      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      overflow:hidden;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-      transition:transform .12s ease,border-color .2s ease;
-      cursor:pointer;
-    }}
-    .card:hover{{transform:translateY(-2px);border-color:rgba(255,255,255,.18)}}
-    .imgwrap{{
-      width:100%;
-      aspect-ratio:1/1;
-      display:grid;
-      place-items:center;
-      background: radial-gradient(400px 220px at 50% 30%, rgba(106,169,255,.18), transparent 60%),
-                  radial-gradient(400px 220px at 50% 70%, rgba(61,220,151,.10), transparent 60%),
-                  rgba(0,0,0,.18);
-      position:relative;
-    }}
-    .champimg{{
-      width:78%;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.2);
-      transition:filter .2s ease, opacity .2s ease;
-    }}
-    .played .champimg{{
-      filter: blur(2.8px) saturate(.9);
-      opacity:.86;
-    }}
+.rain.left { left:0; }
+.rain.right { right:0; }
 
-    /* Big Romania flag */
-    .flagBox{{
-      position:absolute;
-      top:10px;
-      right:10px;
-      width:54px;
-      height:36px;
-      display:none;
-      border-radius:10px;
-      filter: drop-shadow(0 10px 14px rgba(0,0,0,.65));
-      background:rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.18);
-      padding:4px;
-      backdrop-filter: blur(8px);
-    }}
-    .flagBox > .flag{{
-      width:100%;
-      height:100%;
-      border-radius:7px;
-      background:
-        linear-gradient(90deg,
-          #002B7F 0%, #002B7F 33.333%,
-          #FCD116 33.333%, #FCD116 66.666%,
-          #CE1126 66.666%, #CE1126 100%);
-    }}
-    .played .flagBox{{display:block}}
+.rain img{
+  position:absolute;
+  width:90px;
+  opacity:0.8;
+  animation:fall linear infinite;
+}
 
-    /* Big C/M overlay */
-    .letters{{
-      position:absolute;
-      inset:0;
-      display:none;
-      place-items:center;
-      pointer-events:none;
-    }}
-    .played .letters{{display:grid}}
-    .letterRow{{
-      display:flex;
-      gap:18px;
-      align-items:center;
-      justify-content:center;
-      width:100%;
-    }}
-    .bigLetter{{
-      position:relative;
-      font-size:180px;
-      font-weight:900;
-      color:#ffffff;
-      letter-spacing:2px;
-      line-height:1;
-      text-shadow:
-        2px 2px 0 var(--gold2),
-        -2px 2px 0 var(--gold2),
-        2px -2px 0 var(--gold2),
-        -2px -2px 0 var(--gold2),
-        0 0 12px rgba(0,0,0,.65);
-      filter: drop-shadow(0 14px 18px rgba(0,0,0,.55));
-    }}
-    @media (max-width:860px){{ .bigLetter{{font-size:150px;}} }}
-    @media (max-width:460px){{ .bigLetter{{font-size:130px;}} }}
-    .bigLetter::before,
-    .bigLetter::after{{
-      content:"💜 💚 💜";
-      position:absolute;
-      left:50%;
-      transform:translateX(-50%);
-      font-size:28px;
-      opacity:.95;
-      filter: drop-shadow(0 6px 10px rgba(0,0,0,.55));
-      white-space:nowrap;
-    }}
-    .bigLetter::before{{ top:-26px; }}
-    .bigLetter::after{{ bottom:-26px; }}
+@keyframes fall{
+  from{ transform:translateY(-150px) rotate(0deg);}
+  to{ transform:translateY(110vh) rotate(360deg);}
+}
 
-    .meta{{
-      padding:10px 10px 12px 10px;
-      display:grid;
-      gap:8px;
-    }}
-    .name{{
-      font-size:13px;
-      font-weight:700;
-      letter-spacing:.1px;
-      line-height:1.1;
-    }}
-    .mini{{
-      display:flex;
-      gap:6px;
-      flex-wrap:wrap;
-      color:var(--muted);
-      font-size:11px;
-    }}
-    .badge{{
-      padding:3px 8px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.20);
-    }}
+/* GRID */
+.grid{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:20px;
+  padding:40px 200px;
+}
 
-    /* Menu modal */
-    .modalOverlay{{
-      position:fixed; inset:0;
-      background:rgba(0,0,0,.60);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:10000;
-      padding:18px;
-    }}
-    .modalOverlay.show{{display:flex}}
-    .modal{{
-      width:min(520px, 96vw);
-      border-radius:22px;
-      background: rgba(17,24,36,.85);
-      border: 1px solid rgba(255,255,255,.18);
-      box-shadow: 0 20px 70px rgba(0,0,0,.65);
-      backdrop-filter: blur(12px);
-      overflow:hidden;
-    }}
-    .modalHeader{{
-      padding:14px 14px 10px 14px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
-    }}
-    .modalHeader .title{{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      min-width:0;
-    }}
-    .modalHeader h2{{
-      margin:0;
-      font-size:16px;
-      letter-spacing:.2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }}
-    .modalHeader .hint{{color:var(--muted);font-size:12px}}
-    .xbtn{{
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
-      width:36px;height:36px;border-radius:12px;
-      cursor:pointer;
-      font-size:16px;
-      font-family: inherit;
-    }}
-    .xbtn:hover{{background:rgba(255,255,255,.08)}}
-    .modalBody{{padding:14px; display:grid; gap:12px}}
-    .row{{display:grid; grid-template-columns:1fr 1fr; gap:10px}}
-    .field{{display:grid; gap:6px}}
-    .field label{{color:var(--muted); font-size:12px}}
-    select{{
-      width:100%;
-      padding:10px 10px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.25);
-      color: var(--text);
-      outline:none;
-      font-size:13px;
-      font-family: inherit;
-    }}
-    .actions{{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }}
-    .btn{{
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
-      padding:10px 12px;
-      border-radius:14px;
-      cursor:pointer;
-      font-size:13px;
-      font-family: inherit;
-    }}
-    .btn:hover{{background:rgba(255,255,255,.08)}}
-    .btn.primary{{
-      border-color: rgba(61,220,151,.35);
-      background: rgba(61,220,151,.12);
-    }}
-    .btn.danger{{
-      border-color: rgba(255,100,100,.35);
-      background: rgba(255,100,100,.10);
-    }}
-    .list{{display:grid; gap:8px}}
-    .item{{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:10px 10px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      color: rgba(232,238,246,.95);
-      font-size:13px;
-    }}
-    .item small{{color:var(--muted)}}
-    .item .rm{{
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
-      padding:8px 10px;
-      border-radius:12px;
-      cursor:pointer;
-      font-size:12px;
-      font-family: inherit;
-    }}
-    .item .rm:hover{{background:rgba(255,255,255,.08)}}
-    .empty{{
-      color: var(--muted);
-      font-size: 12px;
-      border:1px dashed rgba(255,255,255,.18);
-      border-radius:14px;
-      padding:12px;
-      text-align:center;
-    }}
-  </style>
+.card{
+  background:#111;
+  border-radius:20px;
+  padding:10px;
+  text-align:center;
+  cursor:pointer;
+  position:relative;
+}
+
+.card img{
+  width:100%;
+  border-radius:15px;
+  transition:0.3s;
+}
+
+.card.played img{
+  filter:blur(3px);
+}
+
+/* ARMENSK FLAG */
+.flag{
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:55px;
+  height:35px;
+  display:none;
+  border-radius:6px;
+  overflow:hidden;
+}
+
+.card.played .flag{ display:block; }
+
+.flag div:nth-child(1){ background:#D90012; height:33.3%;}
+.flag div:nth-child(2){ background:#0033A0; height:33.3%;}
+.flag div:nth-child(3){ background:#F2A800; height:33.3%;}
+
+/* C / M BOGSTAVER */
+.letters{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  gap:15px;
+}
+
+.big{
+  font-size:120px; /* MINDRE END FØR */
+  color:white;
+  font-weight:900;
+  text-shadow:
+      3px 3px 0 gold,
+     -3px 3px 0 gold,
+      3px -3px 0 gold,
+     -3px -3px 0 gold,
+      0 0 15px black;
+  position:relative;
+}
+
+.big::before,
+.big::after{
+  content:"💜 💚 💜";
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:22px;
+}
+.big::before{ top:-25px;}
+.big::after{ bottom:-25px;}
+
+/* MENU */
+.menu{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:5;
+}
+
+.menuContent{
+  background:#222;
+  padding:20px;
+  border-radius:20px;
+  width:300px;
+}
+
+select,button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:10px;
+  border:none;
+  font-family:"Comic Sans MS", cursive;
+}
+button{ cursor:pointer; }
+
+</style>
 </head>
+
 <body>
-  <header>
-    <div><h1>LoL Champion Tracker</h1></div>
-  </header>
 
-  <main>
-    <section class="toolbar" aria-label="Filtre">
-      <div class="filters">
-        <div class="group">
-          <span class="label">Vis:</span>
-          <span class="chip active" data-filter="played" data-value="all">Alle</span>
-          <span class="chip" data-filter="played" data-value="played">Kun spillede</span>
-          <span class="chip" data-filter="played" data-value="unplayed">Kun ikke spillede</span>
-        </div>
-        <div class="group">
-          <span class="label">Spiller:</span>
-          <span class="chip active" data-filter="player" data-value="all">Alle</span>
-          <span class="chip" data-filter="player" data-value="C">Casper</span>
-          <span class="chip" data-filter="player" data-value="M">Morten</span>
-        </div>
-      </div>
-      <div class="status" id="status">…</div>
-    </section>
+<div class="rain left" id="rainLeft"></div>
+<div class="rain right" id="rainRight"></div>
 
-    <section class="grid" id="grid"></section>
-  </main>
+<div class="grid" id="grid"></div>
 
-  <!-- Champion menu modal -->
-  <div class="modalOverlay" id="menuOverlay" aria-hidden="true">
-    <div class="modal" role="dialog" aria-label="Vælg lane og spiller">
-      <div class="modalHeader">
-        <div class="title">
-          <h2 id="menuTitle">Champion</h2>
-          <div class="hint">Tilføj eller fjern spil for denne champion</div>
-        </div>
-        <button class="xbtn" id="menuClose" aria-label="Luk">✕</button>
-      </div>
-      <div class="modalBody">
-        <div class="row">
-          <div class="field">
-            <label for="laneSelect">Lane</label>
-            <select id="laneSelect">
-              <option value="top">Top</option>
-              <option value="jungle">Jungle</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="playerSelect">Spiller</label>
-            <select id="playerSelect">
-              <option value="C">Casper (C)</option>
-              <option value="M">Morten (M)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="btn primary" id="addPlayBtn">Markér som spillet</button>
-          <button class="btn danger" id="removePlayBtn">Fjern markering</button>
-        </div>
-
-        <div>
-          <div style="color:var(--muted);font-size:12px;margin-bottom:8px;">Nuværende markeringer</div>
-          <div class="list" id="playList"></div>
-        </div>
-      </div>
-    </div>
+<div class="menu" id="menu">
+  <div class="menuContent">
+    <h3 id="champName"></h3>
+    <select id="lane">
+      <option value="top">Top</option>
+      <option value="jungle">Jungle</option>
+    </select>
+    <select id="player">
+      <option value="C">Casper</option>
+      <option value="M">Morten</option>
+    </select>
+    <button onclick="markPlayed()">Markér</button>
+    <button onclick="closeMenu()">Luk</button>
   </div>
+</div>
 
 <script>
-  const ALL_CHAMPS = {js_array(all_ids)};
-  const STORAGE_KEY = "lol_lane_tracker_clean";
+const plushImg = "31be5eb5-285c-4ea9-ab06-fcbc4fc8f656.png"; // regnbillede
+const ahriImg = "5c259cf5-639d-4617-a35a-dfdd273b8747.png";
 
-  // Data Dragon ids: Wukong is "MonkeyKing"
-  const IMAGE_ID_OVERRIDES = {{ "Wukong": "MonkeyKing" }};
+const champs = ["Ahri","Garen","Darius","Yasuo","Wukong","ChoGath"];
 
-  // Custom champ images (Ahri)
-  const CUSTOM_IMAGE_URIS = {{
-    "Ahri": "{ahri_uri}"
-  }};
+const grid = document.getElementById("grid");
+let current = null;
+let state = {};
 
-  const state = {{
-    plays: {{}}, // {{ [champId]: [ {{lane:'top'|'jungle', player:'C'|'M'}} ] }}
-    filters: {{ played: "all", player: "all" }}
-  }};
+function createChamp(name){
+  const div = document.createElement("div");
+  div.className="card";
+  div.innerHTML=`
+    <div class="flag">
+      <div></div><div></div><div></div>
+    </div>
+    <img src="${name==="Ahri"?ahriImg:`https://ddragon.leagueoflegends.com/cdn/14.1.1/img/champion/${name==="Wukong"?"MonkeyKing":name}.png`}">
+    <div class="letters"></div>
+    <p>${name}</p>
+  `;
+  div.onclick=()=>openMenu(name,div);
+  grid.appendChild(div);
+}
 
-  const elGrid = document.getElementById("grid");
-  const elStatus = document.getElementById("status");
+function openMenu(name,card){
+  current={name,card};
+  document.getElementById("champName").innerText=name;
+  document.getElementById("menu").style.display="flex";
+}
 
-  // Menu modal
-  const menuOverlay = document.getElementById("menuOverlay");
-  const menuTitle = document.getElementById("menuTitle");
-  const laneSelect = document.getElementById("laneSelect");
-  const playerSelect = document.getElementById("playerSelect");
-  const addPlayBtn = document.getElementById("addPlayBtn");
-  const removePlayBtn = document.getElementById("removePlayBtn");
-  const playList = document.getElementById("playList");
-  const menuClose = document.getElementById("menuClose");
+function closeMenu(){
+  document.getElementById("menu").style.display="none";
+}
 
-  let currentChampionId = null;
+function markPlayed(){
+  const player=document.getElementById("player").value;
+  const card=current.card;
+  card.classList.add("played");
+  const letters=card.querySelector(".letters");
+  letters.innerHTML+=`<div class="big">${player}</div>`;
+  closeMenu();
+}
 
-  function loadState(){{
-    try{{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return;
-      const parsed = JSON.parse(raw);
-      if(parsed && typeof parsed === "object"){{
-        if(parsed.plays && typeof parsed.plays === "object") state.plays = parsed.plays;
-        if(parsed.filters && typeof parsed.filters === "object"){{
-          state.filters.played = parsed.filters.played || "all";
-          state.filters.player = parsed.filters.player || "all";
-        }}
-      }}
-    }}catch(e){{}}
-  }}
-  function saveState(){{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }}
+function makeRain(side){
+  const container=document.getElementById(side);
+  for(let i=0;i<10;i++){
+    const img=document.createElement("img");
+    img.src=plushImg;
+    img.style.left=Math.random()*60+"px";
+    img.style.animationDuration=5+Math.random()*5+"s";
+    img.style.animationDelay=Math.random()*5+"s";
+    container.appendChild(img);
+  }
+}
 
-  async function getLatestDDragonVersion(){{
-    const res = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
-    const versions = await res.json();
-    return versions?.[0] || "14.1.1";
-  }}
+makeRain("rainLeft");
+makeRain("rainRight");
 
-  function prettifyNameFromId(id){{
-    const map = {{
-      "ChoGath":"Cho'Gath",
-      "DrMundo":"Dr. Mundo",
-      "JarvanIV":"Jarvan IV",
-      "Khazix":"Kha'Zix",
-      "KogMaw":"Kog'Maw",
-      "KSante":"K'Sante",
-      "RekSai":"Rek'Sai",
-      "Velkoz":"Vel'Koz",
-      "Belveth":"Bel'Veth"
-    }};
-    if(map[id]) return map[id];
-    return id.replace(/([a-z])([A-Z])/g, "$1 $2");
-  }}
-
-  function ensurePlays(id){{
-    if(!Array.isArray(state.plays[id])) state.plays[id] = [];
-    state.plays[id] = state.plays[id]
-      .filter(p => p && (p.lane === "top" || p.lane === "jungle") && (p.player === "C" || p.player === "M"))
-      .map(p => ({{lane:p.lane, player:p.player}}));
-    return state.plays[id];
-  }}
-
-  function addPlay(id, lane, player){{
-    const arr = ensurePlays(id);
-    if(arr.some(p => p.lane === lane && p.player === player)) return false;
-    arr.push({{lane, player}});
-    arr.sort((a,b) => (a.lane+":"+a.player).localeCompare(b.lane+":"+b.player));
-    return true;
-  }}
-  function removePlay(id, lane, player){{
-    const arr = ensurePlays(id);
-    const before = arr.length;
-    state.plays[id] = arr.filter(p => !(p.lane === lane && p.player === player));
-    return state.plays[id].length !== before;
-  }}
-
-  function isPlayedAny(id){{ return ensurePlays(id).length > 0; }}
-  function playedBy(id, who){{
-    if(who === "all") return true;
-    return ensurePlays(id).some(p => p.player === who);
-  }}
-  function hasPlayerLetterFlags(id){{
-    const arr = ensurePlays(id);
-    return {{ C: arr.some(p => p.player === "C"), M: arr.some(p => p.player === "M") }};
-  }}
-
-  function passesFilters(id){{
-    const played = isPlayedAny(id);
-    if(state.filters.played === "played" && !played) return false;
-    if(state.filters.played === "unplayed" && played) return false;
-    if(state.filters.player !== "all" && !playedBy(id, state.filters.player)) return false;
-    return true;
-  }}
-
-  function setFilterUI(){{
-    document.querySelectorAll(".chip[data-filter]").forEach(chip => {{
-      chip.classList.toggle(
-        "active",
-        (chip.dataset.filter === "played" && chip.dataset.value === state.filters.played) ||
-        (chip.dataset.filter === "player" && chip.dataset.value === state.filters.player)
-      );
-    }});
-  }}
-
-  function summaryBadges(id){{
-    const arr = ensurePlays(id);
-    if(arr.length === 0) return `<span class="badge">Ikke spillet</span>`;
-    const parts = arr.map(p => `${{p.lane === "top" ? "Top" : "Jungle"}}-${{p.player}}`);
-    return parts.map(t => `<span class="badge">${{t}}</span>`).join("");
-  }}
-
-  function resolveChampImageSrc(id, version){{
-    if(CUSTOM_IMAGE_URIS[id]) return CUSTOM_IMAGE_URIS[id];
-    const imageId = IMAGE_ID_OVERRIDES[id] || id;
-    return `https://ddragon.leagueoflegends.com/cdn/${{version}}/img/champion/${{imageId}}.png`;
-  }}
-
-  function render(version){{
-    setFilterUI();
-
-    const total = ALL_CHAMPS.length;
-    let shown = 0;
-    let playedTotal = 0;
-
-    const items = [];
-    for(const id of ALL_CHAMPS){{
-      const played = isPlayedAny(id);
-      if(played) playedTotal++;
-      if(!passesFilters(id)) continue;
-      shown++;
-
-      const displayName = prettifyNameFromId(id);
-      const imgSrc = resolveChampImageSrc(id, version);
-      const letters = hasPlayerLetterFlags(id);
-
-      const letterMarkup = played ? `
-        <div class="letters" aria-hidden="true">
-          <div class="letterRow">
-            ${{letters.C ? `<div class="bigLetter">C</div>` : ``}}
-            ${{letters.M ? `<div class="bigLetter">M</div>` : ``}}
-          </div>
-        </div>
-      ` : ``;
-
-      items.push(`
-        <div class="card ${{played ? "played" : ""}}" data-id="${{id}}" title="Klik for menu">
-          <div class="imgwrap">
-            <div class="flagBox" title="Rumænien"><div class="flag"></div></div>
-            <img class="champimg" loading="lazy" src="${{imgSrc}}" alt="${{displayName}}"
-              onerror="this.style.opacity=.25; this.title='Billede kunne ikke indlæses';" />
-            ${{letterMarkup}}
-          </div>
-          <div class="meta">
-            <div class="name">${{displayName}}</div>
-            <div class="mini">${{summaryBadges(id)}}</div>
-          </div>
-        </div>
-      `);
-    }}
-
-    elGrid.innerHTML = items.join("");
-    elStatus.textContent = `${{shown}} vist · ${{playedTotal}} spillede (ud af ${{total}})`;
-
-    document.querySelectorAll(".card[data-id]").forEach(card => {{
-      card.addEventListener("click", () => openMenu(card.dataset.id));
-    }});
-  }}
-
-  function openMenu(id){{
-    currentChampionId = id;
-    menuTitle.textContent = prettifyNameFromId(id);
-    menuOverlay.classList.add("show");
-    menuOverlay.setAttribute("aria-hidden","false");
-    renderPlayList();
-  }}
-
-  function closeMenu(){{
-    menuOverlay.classList.remove("show");
-    menuOverlay.setAttribute("aria-hidden","true");
-    currentChampionId = null;
-  }}
-
-  function renderPlayList(){{
-    if(!currentChampionId) return;
-    const arr = ensurePlays(currentChampionId);
-
-    if(arr.length === 0){{
-      playList.innerHTML = `<div class="empty">Ingen markeringer endnu.</div>`;
-      return;
-    }}
-
-    const label = (p) => `${{p.lane === "top" ? "Top" : "Jungle"}} · ${{p.player === "C" ? "Casper (C)" : "Morten (M)"}}`;
-    playList.innerHTML = arr.map(p => `
-      <div class="item">
-        <div>
-          <div>${{label(p)}}</div>
-          <small>—</small>
-        </div>
-        <button class="rm" data-lane="${{p.lane}}" data-player="${{p.player}}">Fjern</button>
-      </div>
-    `).join("");
-
-    playList.querySelectorAll("button.rm").forEach(btn => {{
-      btn.addEventListener("click", (e) => {{
-        e.stopPropagation();
-        removePlay(currentChampionId, btn.dataset.lane, btn.dataset.player);
-        saveState();
-        renderPlayList();
-        render(window._ddver);
-      }});
-    }});
-  }}
-
-  function wireFilters(){{
-    document.querySelectorAll(".chip[data-filter]").forEach(chip => {{
-      chip.addEventListener("click", () => {{
-        state.filters[chip.dataset.filter] = chip.dataset.value;
-        saveState();
-        render(window._ddver);
-      }});
-    }});
-  }}
-
-  function wireMenuActions(){{
-    menuClose.addEventListener("click", closeMenu);
-    menuOverlay.addEventListener("click", (e) => {{
-      if(e.target === menuOverlay) closeMenu();
-    }});
-
-    addPlayBtn.addEventListener("click", () => {{
-      if(!currentChampionId) return;
-      const lane = laneSelect.value;
-      const player = playerSelect.value;
-
-      const added = addPlay(currentChampionId, lane, player);
-      if(!added) return;
-
-      saveState();
-      renderPlayList();
-      render(window._ddver);
-      closeMenu();
-    }});
-
-    removePlayBtn.addEventListener("click", () => {{
-      if(!currentChampionId) return;
-      const removed = removePlay(currentChampionId, laneSelect.value, playerSelect.value);
-      if(!removed) return;
-
-      saveState();
-      renderPlayList();
-      render(window._ddver);
-    }});
-  }}
-
-  async function boot(){{
-    loadState();
-    window._ddver = await getLatestDDragonVersion();
-    wireFilters();
-    wireMenuActions();
-    render(window._ddver);
-  }}
-
-  boot();
+champs.forEach(createChamp);
 </script>
+
 </body>
 </html>
-
