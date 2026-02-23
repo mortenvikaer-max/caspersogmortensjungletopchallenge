@@ -1,37 +1,4 @@
-import base64, pathlib, re
-
-# Use the latest Ahri attachment (from developer path) if exists
-ahri_path = "/mnt/data/5c259cf5-639d-4617-a35a-dfdd273b8747.png"
-popup_any_path = "/mnt/data/8860b37c-f985-4ec0-ac1c-dfa8b3b48d06.png"  # not used, but kept for completeness
-
-def b64uri(path):
-    return "data:image/png;base64," + base64.b64encode(pathlib.Path(path).read_bytes()).decode("ascii")
-
-ahri_uri = b64uri(ahri_path)
-
-top_ids = [
-"Aatrox","Akali","Camille","ChoGath","Darius","DrMundo","Fiora","Gangplank","Garen","Gnar","Gragas",
-"Gwen","Heimerdinger","Illaoi","Irelia","Jax","Jayce","KSante","Kayle","Kennen","Kled","Malphite",
-"Maokai","Mordekaiser","Nasus","Olaf","Ornn","Pantheon","Poppy","Quinn","Renekton","Riven","Rumble",
-"Ryze","Sett","Shen","Singed","Sion","TahmKench","Teemo","Trundle","Tryndamere","Udyr","Urgot",
-"Vayne","Vladimir","Volibear","Warwick","Wukong","Yasuo","Yone","Yorick","Zac"
-]
-jungle_ids = [
-"Amumu","Belveth","Briar","Brand","Diana","Ekko","Elise","Evelynn","Fiddlesticks","Graves","Hecarim",
-"Ivern","JarvanIV","Jax","Karthus","Kayn","Khazix","Kindred","LeeSin","Lillia","MasterYi","Maokai",
-"Morgana","Nidalee","Nocturne","Nunu","Olaf","Poppy","Rammus","RekSai","Rengar","Sejuani","Shaco",
-"Shyvana","Skarner","Taliyah","Talon","Trundle","Udyr","Vi","Viego","Volibear","Warwick","Wukong",
-"XinZhao","Zac","Zed","Zyra"
-]
-seen=set(); all_ids=[]
-for x in top_ids + jungle_ids + ["Ahri"]:
-    if x not in seen:
-        seen.add(x); all_ids.append(x)
-
-def js_array(lst):
-    return "[\n" + ",\n".join(f'  "{x}"' for x in lst) + "\n]"
-
-clean_html = f"""<!doctype html>
+<!doctype html>
 <html lang="da">
 <head>
   <meta charset="utf-8" />
@@ -743,3 +710,4 @@ clean_html = f"""<!doctype html>
 </script>
 </body>
 </html>
+
